@@ -101,6 +101,7 @@ button:focus-visible {
   height: 30px;
   text-align: center;
   border: 1px solid #000;
+  color: black;
 }
 
 .buttons-container {

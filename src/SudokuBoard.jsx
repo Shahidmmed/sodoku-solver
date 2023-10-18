@@ -9,6 +9,12 @@ function SudokuBoard({ sudokuBoard, handleInputChange }) {
     return squareIndex % 2 === 0 ? "square-color-1" : "square-color-2";
   }
 
+  const handleKeyDown = (e, rowIndex, colIndex) => {
+    if (e.key === "Backspace") {
+      handleInputChange({ target: { value: "" } }, rowIndex, colIndex);
+    }
+  };
+
   return (
     <div className="sudoku-board">
       {sudokuBoard.map((row, rowIndex) => (
@@ -20,6 +26,7 @@ function SudokuBoard({ sudokuBoard, handleInputChange }) {
               key={colIndex}
               value={cell}
               onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
+              onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
             />
           ))}
         </div>
