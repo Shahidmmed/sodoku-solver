@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import SudokuBoard from "./SudokuBoard";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { solve, populateValues } from "./solver";
+import { solve } from "./solver";
 
 function App() {
   const [sudokuBoard, setSudokuBoard] = useState(
@@ -23,13 +23,13 @@ function App() {
   const handleInputChange = (e, rowIndex, colIndex) => {
     const newValue = e.target.value;
     // Check if the entered value is a number
-    if (!isNaN(newValue) && newValue !== "") {
+    if (!isNaN(newValue) && /^\d{0,1}$/.test(newValue)) {
       const newBoard = [...sudokuBoard];
       newBoard[rowIndex][colIndex] = newValue;
       setSudokuBoard(newBoard);
       setError(null); // Clear any previous error
     } else {
-      const errorMessage = "Please enter a valid number.";
+      const errorMessage = "Please enter a valid single digit (0-9).";
       setError(errorMessage);
       toast.error(errorMessage);
     }

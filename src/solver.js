@@ -1,11 +1,13 @@
-// sudokuSolver.js
-
+//takes an index (from 0 to 80) and converts it into row and column coordinates in a 9x9 Sudoku grid
 const indexToRowCol = (index) => {
   return { row: Math.floor(index / 9), col: index % 9 };
 };
 
+//does the reverse, taking row and column coordinates and converting them into a single index
 const rowColToIndex = (row, col) => row * 9 + col;
 
+//checks if it's valid to place a specific value at a given index on the Sudoku board
+//if the value is not present in the same row, column, or 3x3 subgrid
 const acceptable = (board, index, value) => {
   let { row, col } = indexToRowCol(index);
   for (let r = 0; r < 9; ++r) {
@@ -25,6 +27,7 @@ const acceptable = (board, index, value) => {
   return true;
 };
 
+// returns an array of valid numbers that can be placed at a given index on the Sudoku board
 const getChoices = (board, index) => {
   let choices = [];
 
@@ -43,7 +46,6 @@ const bestBet = (board) => {
 
   for (let i = 0; i < 81; ++i) {
     if (board[i] === 0) {
-      // Check if the cell is unsolved
       let m = getChoices(board, i);
       if (m.length < bestLen) {
         bestLen = m.length;
@@ -66,8 +68,3 @@ export const solve = (board) => {
   board[index] = 0;
   return 0;
 };
-
-export function populateValues() {
-  const inputs = document.querySelectorAll("input");
-  inputs.forEach((input, i) => (input.value = board[i]));
-}
