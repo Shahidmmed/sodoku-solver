@@ -117,6 +117,11 @@ function App() {
     setSudokuBoard(clearedBoard);
     setIsSolved(false);
     setError(null);
+
+    const inputs = document.querySelectorAll("input");
+    inputs.forEach((input) => {
+      input.disabled = false;
+    });
   };
 
   return (
