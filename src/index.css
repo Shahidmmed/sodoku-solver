@@ -69,6 +69,10 @@ button:focus-visible {
   }
 }
 
+input[value="0"] {
+  color: transparent;
+}
+
 .guide {
   margin-bottom: 8px;
 }

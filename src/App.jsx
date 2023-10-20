@@ -46,15 +46,18 @@ function App() {
           if (value !== undefined) {
             if (value === 0) {
               input.value = ""; // Set the input field to be empty for zero.
+              console.log("val aft", input.value);
               input.disabled = false; // Enable the input field for user input.
             } else {
               input.value = value.toString();
               input.disabled = true; // Disable the input field for pre-filled values.
             }
           }
+          console.log(input);
           inputIndex++;
         }
       }
+      //console.log(inputs);
     } else {
       const errorMessage = "Could not generate board.";
       setError(errorMessage);
@@ -71,7 +74,7 @@ function App() {
       setSudokuBoard(newBoard);
       setError(null);
     } else {
-      const errorMessage = "Please enter a valid single digit (0-9).";
+      const errorMessage = "Please enter a valid single digit (1-9).";
       setError(errorMessage);
       toast.error(errorMessage);
     }
