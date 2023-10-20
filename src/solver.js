@@ -58,12 +58,21 @@ const bestBet = (board) => {
   return { index, moves };
 };
 
+export function flatTo2DArray(flatArray) {
+  const size = Math.sqrt(flatArray.length);
+  const result = [];
+  for (let i = 0; i < size; i++) {
+    result.push(flatArray.slice(i * size, (i + 1) * size));
+  }
+  return result;
+}
+
 export const solve = (board) => {
   let { index, moves } = bestBet(board);
   if (index == null) return true;
   for (let m of moves) {
     board[index] = m;
-    if (solve(board)) return board; // Pass the board as an argument
+    if (solve(board)) return flatTo2DArray(board);
   }
   board[index] = 0;
   return 0;
