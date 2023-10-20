@@ -1,15 +1,30 @@
 import { solve, flatTo2DArray } from "./solver";
 
+// Function to generate a Sudoku puzzle and ensure it's solvable.
 export function generateSudokuPuzzle() {
-  // Create an empty Sudoku grid (9x9 array).
-  const grid = Array.from({ length: 9 }, () => Array(9).fill(0));
+  let grid;
+  let solvable = false;
 
-  // Fill the grid with a solved Sudoku puzzle.
-  const initialValuesCount = Math.floor(Math.random() * 11) + 20;
+  while (!solvable) {
+    // Create an empty Sudoku grid (9x9 array).
+    grid = Array.from({ length: 9 }, () => Array(9).fill(0));
 
-  for (let i = 0; i < initialValuesCount; i++) {
-    insertRandomNumber(grid);
+    // Fill the grid with a solved Sudoku puzzle.
+    const initialValuesCount = Math.floor(Math.random() * 11) + 20;
+
+    for (let i = 0; i < initialValuesCount; i++) {
+      insertRandomNumber(grid);
+    }
+
+    // Check if the puzzle has a unique solution.
+    if (hasUniqueSolution([...grid])) {
+      solvable = true;
+    } else {
+      // If it's not solvable, reset the grid and try again.
+      grid = Array.from({ length: 9 }, () => Array(9).fill(0));
+    }
   }
+
   fillSudoku(grid);
 
   // Define the number of cells to remove to create the puzzle.
@@ -18,11 +33,7 @@ export function generateSudokuPuzzle() {
   // Randomly remove numbers while ensuring a unique solution.
   removeNumbers(grid, difficulty);
 
-  if (solve(grid)) {
-    return grid;
-  } else {
-    generateSudokuPuzzle();
-  }
+  return grid;
 }
 
 // Fill the Sudoku grid with a solved puzzle using your provided solver.

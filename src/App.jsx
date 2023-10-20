@@ -11,6 +11,7 @@ function App() {
   );
 
   const [error, setError] = useState(null);
+  const [isSolved, setIsSolved] = useState(false);
 
   function convertInputsToBoard() {
     const updatedBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
@@ -31,6 +32,7 @@ function App() {
   }
 
   function loadSudoku() {
+    setIsSolved(false);
     const sudokuProblem = generateSudokuPuzzle();
     const inputs = document.querySelectorAll("input");
     if (sudokuProblem) {
@@ -76,6 +78,14 @@ function App() {
   };
 
   const solveSudoku = () => {
+    if (isSolved) {
+      const errorMessage =
+        "The board is already solved, no need to solve it again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      return;
+    }
+
     const flatBoard = convertInputsToBoard().flat();
     const inputs = document.querySelectorAll("input");
     const solved = solve(flatBoard);
@@ -91,6 +101,7 @@ function App() {
           inputIndex++;
         }
       }
+      setIsSolved(true);
     } else {
       const errorMessage = "No solution found.";
       setError(errorMessage);
@@ -101,6 +112,7 @@ function App() {
   const clearBoard = () => {
     const clearedBoard = Array.from({ length: 9 }, () => Array(9).fill(""));
     setSudokuBoard(clearedBoard);
+    setIsSolved(false);
     setError(null);
   };
 
