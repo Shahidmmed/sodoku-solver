@@ -18,7 +18,11 @@ export function generateSudokuPuzzle() {
   // Randomly remove numbers while ensuring a unique solution.
   removeNumbers(grid, difficulty);
 
-  return grid;
+  if (solve(grid)) {
+    return grid;
+  } else {
+    generateSudokuPuzzle();
+  }
 }
 
 // Fill the Sudoku grid with a solved puzzle using your provided solver.
@@ -138,7 +142,3 @@ function shuffleArray(arr) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
-
-// Example usage:
-const sudokuPuzzle = generateSudokuPuzzle();
-console.log(sudokuPuzzle);
