@@ -26,7 +26,7 @@ function SudokuBoard({ sudokuBoard, handleInputChange }) {
               type="text"
               className={`sudoku-cell ${getSquareColor(rowIndex, colIndex)}`}
               key={colIndex}
-              value={cell}
+              value={cell === 0 ? "" : cell}
               onChange={(e) => handleInputChange(e, rowIndex, colIndex)}
               onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
             />

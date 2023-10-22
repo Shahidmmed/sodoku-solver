@@ -40,7 +40,6 @@ function App() {
 
     if (sudokuProblem) {
       const solvedPuzzle = solve(sudokuProblem.flat());
-      console.log("solvedPuzzle", solvedPuzzle);
       setSolvedSudoku(flatTo2DArray(solvedPuzzle));
       let inputIndex = 0;
 
@@ -53,7 +52,6 @@ function App() {
           if (value !== undefined) {
             if (value === 0) {
               input.value = ""; // Set the input field to be empty for zero.
-              console.log("first", input);
               input.disabled = false; // Enable the input field for user input.
             } else {
               input.value = value.toString();
@@ -61,13 +59,10 @@ function App() {
             }
           }
           inputIndex++;
-          console.log(value);
         }
       }
 
-      console.log(sudokuProblem);
       setSudokuBoard(sudokuProblem);
-      //console.log(inputs);
     } else {
       const errorMessage = "Could not generate board.";
       setError(errorMessage);
@@ -85,7 +80,6 @@ function App() {
       setError(null);
 
       if (solvedSudoku.length) {
-        console.log("solved", solvedSudoku);
         const solvedRow = solvedSudoku[rowIndex];
         if (solvedRow && solvedRow.length > colIndex) {
           const solvedValue = solvedRow[colIndex];
