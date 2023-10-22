@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import SudokuBoard from "./SudokuBoard";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { solve } from "./solver";
+import { solve, flatTo2DArray } from "./solver";
 import { generateSudokuPuzzle } from "./loader";
 
 function App() {
@@ -12,6 +12,7 @@ function App() {
 
   const [error, setError] = useState(null);
   const [isSolved, setIsSolved] = useState(false);
+  const [solvedSudoku, setSolvedSudoku] = useState([]);
 
   function convertInputsToBoard() {
     const updatedBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
@@ -33,30 +34,39 @@ function App() {
 
   function loadSudoku() {
     setIsSolved(false);
+
     const sudokuProblem = generateSudokuPuzzle();
     const inputs = document.querySelectorAll("input");
+
     if (sudokuProblem) {
-      setSudokuBoard(sudokuProblem);
+      const solvedPuzzle = solve(sudokuProblem.flat());
+      console.log("solvedPuzzle", solvedPuzzle);
+      setSolvedSudoku(flatTo2DArray(solvedPuzzle));
       let inputIndex = 0;
+
       for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
         for (let colIndex = 0; colIndex < 9; colIndex++) {
           const value = sudokuProblem[rowIndex][colIndex];
+
           const input = inputs[inputIndex];
 
           if (value !== undefined) {
             if (value === 0) {
               input.value = ""; // Set the input field to be empty for zero.
-              console.log("val aft", input.value);
+              console.log("first", input);
               input.disabled = false; // Enable the input field for user input.
             } else {
               input.value = value.toString();
               input.disabled = true; // Disable the input field for pre-filled values.
             }
           }
-          console.log(input);
           inputIndex++;
+          console.log(value);
         }
       }
+
+      console.log(sudokuProblem);
+      setSudokuBoard(sudokuProblem);
       //console.log(inputs);
     } else {
       const errorMessage = "Could not generate board.";
@@ -73,6 +83,20 @@ function App() {
       newBoard[rowIndex][colIndex] = newValue;
       setSudokuBoard(newBoard);
       setError(null);
+
+      if (solvedSudoku.length) {
+        console.log("solved", solvedSudoku);
+        const solvedRow = solvedSudoku[rowIndex];
+        if (solvedRow && solvedRow.length > colIndex) {
+          const solvedValue = solvedRow[colIndex];
+          if (newValue !== "" && parseInt(newValue) !== solvedValue) {
+            const errorMessage =
+              "Incorrect input. Please review your solution.";
+            setError(errorMessage);
+            toast.error(errorMessage);
+          }
+        }
+      }
     } else {
       const errorMessage = "Please enter a valid single digit (1-9).";
       setError(errorMessage);
