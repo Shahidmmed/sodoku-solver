@@ -13,6 +13,7 @@ function App() {
   const [error, setError] = useState(null);
   const [isSolved, setIsSolved] = useState(false);
   const [solvedSudoku, setSolvedSudoku] = useState([]);
+  const [solved, setSolved] = useState([]); //FIX: 9x9 matrix to match board so its easier to compare solved to current
 
   function convertInputsToBoard() {
     const updatedBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
@@ -37,10 +38,10 @@ function App() {
 
     const sudokuProblem = generateSudokuPuzzle();
     const inputs = document.querySelectorAll("input");
-
     if (sudokuProblem) {
       const solvedPuzzle = solve(sudokuProblem.flat());
       setSolvedSudoku(flatTo2DArray(solvedPuzzle));
+      setSolved(solvedPuzzle); //FIX: SET SOLVED BOARD WITHOUT CHANGING SRUCTURE (STILL 9X9)
       let inputIndex = 0;
 
       for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
@@ -75,14 +76,15 @@ function App() {
     // Check if the entered value is a number
     if (!isNaN(newValue) && /^\d{0,1}$/.test(newValue)) {
       const newBoard = [...sudokuBoard];
-      newBoard[rowIndex][colIndex] = newValue;
+      newBoard[rowIndex][colIndex] = parseInt(newValue) || ""; //FIX: CHANGE VALUE TO INT, INPUT VLUES RE STRING BY DEFAULT
       setSudokuBoard(newBoard);
       setError(null);
 
       if (solvedSudoku.length) {
-        const solvedRow = solvedSudoku[rowIndex];
+        const solvedRow = solved[rowIndex]; //FIX: USE 9X9 SOLVED  BOARD INSTEAD OF FLATTENED
         if (solvedRow && solvedRow.length > colIndex) {
           const solvedValue = solvedRow[colIndex];
+          //FIX:NOW VALUES ARE BOTH INT SO NO ISSUES
           if (newValue !== "" && parseInt(newValue) !== solvedValue) {
             const errorMessage =
               "Incorrect input. Please review your solution.";
@@ -109,13 +111,13 @@ function App() {
 
     const flatBoard = convertInputsToBoard().flat();
     const inputs = document.querySelectorAll("input");
-    const solved = solve(flatBoard);
+    // const solved = solve(flatBoard);
     if (solved) {
       setSudokuBoard(solved);
       let inputIndex = 0;
       for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
         for (let colIndex = 0; colIndex < 9; colIndex++) {
-          const value = solved[rowIndex][colIndex];
+          const value = solved[rowIndex][colIndex]; //FIX: USE 9X9 MATRIX TO FILL SOLVED VALUES
           if (value !== undefined) {
             inputs[inputIndex].value = value === 0 ? "" : value.toString();
           }
@@ -145,6 +147,7 @@ function App() {
   return (
     <div className="app-container">
       <h2>Sudoku Solver</h2>
+
       <div className="guide">
         <p>
           👉 Enter a valid sudoku puzzle, then click the Solve button to see the
