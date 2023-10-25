@@ -134,11 +134,15 @@ button {
 }
 
 .square-color-1 {
-  background-color: #e0e0e0 !important; /* Color for the first 3x3 square */
+  background-color: #e0e0e0; /* Color for the first 3x3 square */
 }
 
 .square-color-2 {
-  background-color: #7f7c7c !important; /* Color for the second 3x3 square */
+  background-color: #7f7c7c; /* Color for the second 3x3 square */
+}
+
+.incorrect-input {
+  background-color: #f31e1e;
 }
 
 input:disabled .square-color-2 {

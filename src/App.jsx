@@ -40,14 +40,12 @@ function App() {
     const inputs = document.querySelectorAll("input");
     if (sudokuProblem) {
       const solvedPuzzle = solve(sudokuProblem.flat());
-      setSolvedSudoku(flatTo2DArray(solvedPuzzle));
       setSolved(solvedPuzzle); //FIX: SET SOLVED BOARD WITHOUT CHANGING SRUCTURE (STILL 9X9)
       let inputIndex = 0;
 
       for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
         for (let colIndex = 0; colIndex < 9; colIndex++) {
           const value = sudokuProblem[rowIndex][colIndex];
-
           const input = inputs[inputIndex];
 
           if (value !== undefined) {
@@ -80,16 +78,19 @@ function App() {
       setSudokuBoard(newBoard);
       setError(null);
 
-      if (solvedSudoku.length) {
+      if (solved.length) {
         const solvedRow = solved[rowIndex]; //FIX: USE 9X9 SOLVED  BOARD INSTEAD OF FLATTENED
         if (solvedRow && solvedRow.length > colIndex) {
           const solvedValue = solvedRow[colIndex];
           //FIX:NOW VALUES ARE BOTH INT SO NO ISSUES
           if (newValue !== "" && parseInt(newValue) !== solvedValue) {
+            e.target.classList.add("incorrect-input");
             const errorMessage =
               "Incorrect input. Please review your solution.";
             setError(errorMessage);
             toast.error(errorMessage);
+          } else {
+            e.target.classList.remove("incorrect-input");
           }
         }
       }
