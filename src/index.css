@@ -69,10 +69,6 @@ button:focus-visible {
   }
 }
 
-/* input[value="0"] {
-  color: transparent;
-} */
-
 .guide {
   margin-bottom: 8px;
 }
@@ -101,8 +97,9 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 2px solid #000; /* Optional border for visualization */
-  padding: 20px; /* Optional padding for the Sudoku container */
+  border: 2px solid #000;
+  padding: 20px;
+  margin: 10px;
 }
 
 .sudoku-board {
@@ -121,6 +118,7 @@ button:focus-visible {
   text-align: center;
   border: 1px solid #000;
   color: black;
+  font-weight: 800;
 }
 
 .buttons-container {
@@ -132,9 +130,16 @@ button {
 }
 
 .square-color-1 {
-  background-color: #e0e0e0; /* Color for the first 3x3 square */
+  background-color: #e0e0e0 !important; /* Color for the first 3x3 square */
 }
 
 .square-color-2 {
-  background-color: #7f7c7c; /* Color for the second 3x3 square */
+  background-color: #7f7c7c !important; /* Color for the second 3x3 square */
+}
+
+input:disabled .square-color-2 {
+  background-color: #7f7c7c !important;
+}
+input:disabled .square-color-1 {
+  background-color: #e0e0e0 !important;
 }
