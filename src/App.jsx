@@ -38,6 +38,13 @@ function App() {
 
     const sudokuProblem = generateSudokuPuzzle();
     const inputs = document.querySelectorAll("input");
+
+    inputs.forEach((input) => {
+      if (input.classList.contains("incorrect-input")) {
+        input.classList.remove("incorrect-input");
+      }
+    });
+
     if (sudokuProblem) {
       const solvedPuzzle = solve(sudokuProblem.flat());
       setSolved(solvedPuzzle); //FIX: SET SOLVED BOARD WITHOUT CHANGING SRUCTURE (STILL 9X9)
@@ -80,17 +87,26 @@ function App() {
 
       if (solved.length) {
         const solvedRow = solved[rowIndex]; //FIX: USE 9X9 SOLVED  BOARD INSTEAD OF FLATTENED
+
         if (solvedRow && solvedRow.length > colIndex) {
           const solvedValue = solvedRow[colIndex];
+
           //FIX:NOW VALUES ARE BOTH INT SO NO ISSUES
           if (newValue !== "" && parseInt(newValue) !== solvedValue) {
             e.target.classList.add("incorrect-input");
+
             const errorMessage =
               "Incorrect input. Please review your solution.";
             setError(errorMessage);
             toast.error(errorMessage);
           } else {
-            e.target.classList.remove("incorrect-input");
+            if (
+              e.target instanceof HTMLInputElement &&
+              e.target.classList &&
+              e.target.classList.contains("incorrect-input")
+            ) {
+              e.target.classList.remove("incorrect-input");
+            }
           }
         }
       }
@@ -142,6 +158,10 @@ function App() {
     const inputs = document.querySelectorAll("input");
     inputs.forEach((input) => {
       input.disabled = false;
+      // Remove the "incorrect-input" class from all inputs
+      if (input.classList.contains("incorrect-input")) {
+        input.classList.remove("incorrect-input");
+      }
     });
   };
 
