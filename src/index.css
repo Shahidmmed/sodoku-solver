@@ -104,11 +104,15 @@ button:focus-visible {
 
 .sudoku-board {
   display: grid;
-  grid-template-columns: repeat(9, 1fr);
+  /* FIX: CHANGE DIRECTION SO ROWS GO TOP TO DOWN INSTEAD OF LEFT TO RIGHT */
+  /* SO IF YOU FETCH ALL INPUTS IT WILL FOLLOW LEFT TO RIGHT FOR EACH ROW. SIMILAR TO THE BOARD DATA */
+  grid-template-rows: repeat(9, 1fr);
 }
 
 .sudoku-row {
   display: grid;
+  /* FIX: CHANGE DIRECTION SO CELLS GO LEFT TO RIGHT INSTEAD OF TOP TO DOWN */
+  grid-template-columns: repeat(9, 1fr);
   gap: 2px;
 }
 

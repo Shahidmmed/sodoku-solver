@@ -23,6 +23,7 @@ function SudokuBoard({ sudokuBoard, handleInputChange }) {
         <div className="sudoku-row" key={rowIndex}>
           {row.map((cell, colIndex) => (
             <input
+              id={`${rowIndex}-${colIndex}`}
               type="text"
               className={`sudoku-cell ${getSquareColor(rowIndex, colIndex)}`}
               key={colIndex}
