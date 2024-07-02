@@ -8,7 +8,7 @@ const rowColToIndex = (row, col) => row * 9 + col;
 
 //checks if it's valid to place a specific value at a given index on the Sudoku board
 //if the value is not present in the same row, column, or 3x3 subgrid
-const acceptable = (board, index, value) => {
+const  acceptable = (board, index, value) => {
   let { row, col } = indexToRowCol(index);
   for (let r = 0; r < 9; ++r) {
     if (board[rowColToIndex(r, col)] == value) return false;

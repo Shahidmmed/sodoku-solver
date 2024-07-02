@@ -121,7 +121,7 @@ button:focus-visible {
   height: 30px;
   text-align: center;
   border: 1px solid #000;
-  color: black;
+  color: black !important;
   font-weight: 800;
 }
 
@@ -150,4 +150,19 @@ input:disabled .square-color-2 {
 }
 input:disabled .square-color-1 {
   background-color: #e0e0e0 !important;
+}
+
+/* Style inputs on iPhone Safari */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input:disabled {
+    -webkit-text-fill-color: initial !important;
+    opacity: 1 !important;
+  }
+}
+
+
+@media (max-width: 500px) {
+  .app-container {
+    zoom: 80%;
+  }
 }
