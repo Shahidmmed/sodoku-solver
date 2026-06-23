@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SudokuBoard from "./SudokuBoard";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -7,6 +7,23 @@ import { generateSudokuPuzzle } from "./loader";
 
 const createEmptyBoard = (value = "") =>
   Array.from({ length: 9 }, () => Array(9).fill(value));
+
+const DIFFICULTIES = {
+  easy: { label: "Easy", cellsToRemove: 32 },
+  medium: { label: "Medium", cellsToRemove: 40 },
+  hard: { label: "Hard", cellsToRemove: 48 },
+};
+
+const FEEDBACK_MODES = {
+  alert: {
+    label: "Alert",
+    description: "Shows mistakes as you type.",
+  },
+  passive: {
+    label: "Passive",
+    description: "Shows mistakes after the board is filled.",
+  },
+};
 
 const createFixedCells = (board) =>
   board.map((row) => row.map((cell) => cell !== 0 && cell !== ""));
@@ -41,6 +58,13 @@ const createIncorrectCells = (board, solvedBoard) =>
 const createInputHighlightCells = (fixedCells) =>
   fixedCells.map((row) => row.map((isFixed) => !isFixed));
 
+const formatTime = (totalSeconds) => {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
+
 function App() {
   const [sudokuBoard, setSudokuBoard] = useState(createEmptyBoard);
   const [fixedCells, setFixedCells] = useState(() => createEmptyBoard(false));
@@ -50,16 +74,37 @@ function App() {
 
   const [isSolved, setIsSolved] = useState(false);
   const [solved, setSolved] = useState(null);
+  const [difficulty, setDifficulty] = useState("medium");
+  const [feedbackMode, setFeedbackMode] = useState("alert");
+  const [revealedMistakeCells, setRevealedMistakeCells] = useState(() =>
+    createEmptyBoard(false)
+  );
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [statusMessage, setStatusMessage] = useState(
     "Load a puzzle or enter your own numbers to get started."
   );
 
-  const incorrectCells = createIncorrectCells(sudokuBoard, solved);
+  const currentMistakeCells = createIncorrectCells(sudokuBoard, solved);
+  const incorrectCells =
+    feedbackMode === "alert" ? currentMistakeCells : revealedMistakeCells;
+
+  useEffect(() => {
+    if (!isTimerRunning) return undefined;
+
+    const timerId = window.setInterval(() => {
+      setElapsedSeconds((currentSeconds) => currentSeconds + 1);
+    }, 1000);
+
+    return () => window.clearInterval(timerId);
+  }, [isTimerRunning]);
 
   function loadSudoku() {
     setIsSolved(false);
 
-    const sudokuProblem = generateSudokuPuzzle();
+    const sudokuProblem = generateSudokuPuzzle(
+      DIFFICULTIES[difficulty].cellsToRemove
+    );
 
     if (sudokuProblem) {
       const solvedPuzzle = solveBoard(sudokuProblem);
@@ -75,7 +120,12 @@ function App() {
       setSudokuBoard(sudokuProblem);
       setFixedCells(createFixedCells(sudokuProblem));
       setInputHighlightCells(createEmptyBoard(false));
-      setStatusMessage("New puzzle loaded. Fill the empty cells to solve it.");
+      setRevealedMistakeCells(createEmptyBoard(false));
+      setElapsedSeconds(0);
+      setIsTimerRunning(true);
+      setStatusMessage(
+        `${DIFFICULTIES[difficulty].label} puzzle loaded. Fill the empty cells to solve it.`
+      );
     } else {
       const errorMessage = "Could not generate board.";
       setStatusMessage(errorMessage);
@@ -92,6 +142,7 @@ function App() {
       setSudokuBoard((currentBoard) =>
         updateCell(currentBoard, rowIndex, colIndex, "")
       );
+      setRevealedMistakeCells(createEmptyBoard(false));
       setStatusMessage("Cell cleared.");
       return;
     }
@@ -111,6 +162,36 @@ function App() {
 
     setSudokuBoard(nextBoard);
     setIsSolved(false);
+    setInputHighlightCells(createEmptyBoard(false));
+    setIsTimerRunning(true);
+
+    if (feedbackMode === "passive") {
+      if (!isBoardComplete(nextBoard)) {
+        setRevealedMistakeCells(createEmptyBoard(false));
+        setStatusMessage("Move recorded.");
+        return;
+      }
+
+      const mistakeCells = createIncorrectCells(nextBoard, solved);
+      const hasMistakes = mistakeCells.flat().some(Boolean);
+
+      if (hasMistakes) {
+        setRevealedMistakeCells(mistakeCells);
+        setStatusMessage("Board filled. Review the highlighted cells.");
+        return;
+      }
+
+      setRevealedMistakeCells(createEmptyBoard(false));
+      setIsSolved(true);
+      setIsTimerRunning(false);
+      setInputHighlightCells(createInputHighlightCells(fixedCells));
+      setFixedCells(createEmptyBoard(true));
+      setStatusMessage(
+        `Great job, the puzzle is complete in ${formatTime(elapsedSeconds)}.`
+      );
+      toast.success("Puzzle complete!");
+      return;
+    }
 
     if (hasCellConflict(nextBoard, rowIndex, colIndex)) {
       setStatusMessage(
@@ -131,9 +212,12 @@ function App() {
       !createIncorrectCells(nextBoard, solved).flat().some(Boolean)
     ) {
       setIsSolved(true);
+      setIsTimerRunning(false);
       setInputHighlightCells(createInputHighlightCells(fixedCells));
       setFixedCells(createEmptyBoard(true));
-      setStatusMessage("Great job, the puzzle is complete.");
+      setStatusMessage(
+        `Great job, the puzzle is complete in ${formatTime(elapsedSeconds)}.`
+      );
       toast.success("Puzzle complete!");
       return;
     }
@@ -158,6 +242,7 @@ function App() {
     }
 
     if (hasBoardConflict(sudokuBoard)) {
+      setRevealedMistakeCells(currentMistakeCells);
       const errorMessage = "Fix the highlighted conflicts before solving.";
       setStatusMessage(errorMessage);
       toast.error(errorMessage);
@@ -172,7 +257,8 @@ function App() {
       setInputHighlightCells(createInputHighlightCells(fixedCells));
       setFixedCells(createEmptyBoard(true));
       setIsSolved(true);
-      setStatusMessage("Solved the current board.");
+      setIsTimerRunning(false);
+      setStatusMessage(`Solved the current board in ${formatTime(elapsedSeconds)}.`);
       toast.success("Solved!");
     } else {
       const errorMessage = "No solution found.";
@@ -185,8 +271,11 @@ function App() {
     setSudokuBoard(createEmptyBoard());
     setFixedCells(createEmptyBoard(false));
     setInputHighlightCells(createEmptyBoard(false));
+    setRevealedMistakeCells(createEmptyBoard(false));
     setSolved(null);
     setIsSolved(false);
+    setElapsedSeconds(0);
+    setIsTimerRunning(false);
     setStatusMessage("Board cleared. Enter a puzzle or load a new one.");
   };
 
@@ -208,14 +297,53 @@ function App() {
               <p className="section-label">Board</p>
               <h2>Make your next move</h2>
             </div>
-            <span className={isSolved ? "game-state solved" : "game-state"}>
-              {isSolved ? "Solved" : "In progress"}
-            </span>
+            <div className="game-meta">
+              <span className="timer" aria-label="Elapsed time">
+                {formatTime(elapsedSeconds)}
+              </span>
+              <span className={isSolved ? "game-state solved" : "game-state"}>
+                {isSolved ? "Solved" : "In progress"}
+              </span>
+            </div>
           </div>
 
           <p className="status-message" role="status">
             {statusMessage}
           </p>
+
+          <div className="game-options" aria-label="Game settings">
+            <label>
+              Difficulty
+              <select
+                value={difficulty}
+                onChange={(event) => setDifficulty(event.target.value)}
+              >
+                {Object.entries(DIFFICULTIES).map(([value, option]) => (
+                  <option key={value} value={value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Feedback
+              <select
+                value={feedbackMode}
+                onChange={(event) => {
+                  setFeedbackMode(event.target.value);
+                  setRevealedMistakeCells(createEmptyBoard(false));
+                  setStatusMessage(FEEDBACK_MODES[event.target.value].description);
+                }}
+              >
+                {Object.entries(FEEDBACK_MODES).map(([value, option]) => (
+                  <option key={value} value={value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
           <SudokuBoard
             sudokuBoard={sudokuBoard}
@@ -261,9 +389,10 @@ function App() {
             and 3x3 box can contain each digit only once.
           </p>
           <ul>
-            <li>Red cells show a conflict or wrong loaded-puzzle answer.</li>
+            <li>Choose Easy, Medium, or Hard before loading a new puzzle.</li>
+            <li>Alert mode shows mistakes as you type.</li>
+            <li>Passive mode waits until the board is filled to reveal mistakes.</li>
             <li>Prefilled puzzle cells are locked so you can focus on gaps.</li>
-            <li>Solve works for loaded puzzles and boards you enter manually.</li>
           </ul>
         </aside>
       </main>

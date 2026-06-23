@@ -1,7 +1,7 @@
 import { hasBoardConflict, solveBoard } from "./solver";
 
 // Function to generate a Sudoku puzzle and ensure it's solvable.
-export function generateSudokuPuzzle() {
+export function generateSudokuPuzzle(cellsToRemove = 40) {
   let grid;
   let solvable = false;
 
@@ -27,11 +27,8 @@ export function generateSudokuPuzzle() {
 
   fillSudoku(grid);
 
-  // Define the number of cells to remove to create the puzzle.
-  const difficulty = 40; // Adjust this to control the puzzle's difficulty.
-
   // Randomly remove numbers while ensuring a unique solution.
-  removeNumbers(grid, difficulty);
+  removeNumbers(grid, cellsToRemove);
 
   return grid;
 }

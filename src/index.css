@@ -112,13 +112,31 @@ body {
   letter-spacing: -0.04em;
 }
 
-.game-state {
+.game-meta {
+  display: flex;
   flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.game-state {
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   padding: 7px 12px;
   color: rgba(255, 255, 255, 0.76);
   background: #242424;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.timer {
+  border: 1px solid #646cff;
+  border-radius: 999px;
+  padding: 7px 12px;
+  color: #fff;
+  background: #1a1a1a;
+  font-variant-numeric: tabular-nums;
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -280,6 +298,41 @@ button:focus-visible {
   text-align: center;
 }
 
+.game-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.game-options label {
+  display: grid;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-options select {
+  width: 100%;
+  border: 1px solid #646cff;
+  border-radius: 999px;
+  padding: 0.7em 0.9em;
+  color: #fff;
+  background: #1a1a1a;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.game-options select:focus-visible {
+  outline: 3px solid rgba(66, 99, 235, 0.32);
+  outline-offset: 3px;
+}
+
 .rules-card {
   padding: 28px;
 }
@@ -346,6 +399,10 @@ button:focus-visible {
     width: fit-content;
   }
 
+  .game-meta {
+    justify-content: flex-start;
+  }
+
   .buttons-container {
     display: flex;
     flex-wrap: nowrap;
@@ -357,5 +414,9 @@ button:focus-visible {
     min-width: 0;
     padding: 0.75em 0.55em;
     font-size: 0.85rem;
+  }
+
+  .game-options {
+    grid-template-columns: 1fr;
   }
 }
