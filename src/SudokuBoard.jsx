@@ -4,6 +4,7 @@ function SudokuBoard({
   sudokuBoard,
   fixedCells,
   incorrectCells,
+  inputHighlightCells,
   handleInputChange,
 }) {
   function getSquareColor(rowIndex, colIndex) {
@@ -23,6 +24,7 @@ function SudokuBoard({
             const className = [
               "sudoku-cell",
               getSquareColor(rowIndex, colIndex),
+              inputHighlightCells[rowIndex][colIndex] ? "solved-input" : "",
               incorrectCells[rowIndex][colIndex] ? "incorrect-input" : "",
             ]
               .filter(Boolean)

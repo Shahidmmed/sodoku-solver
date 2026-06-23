@@ -38,9 +38,15 @@ const createIncorrectCells = (board, solvedBoard) =>
     })
   );
 
+const createInputHighlightCells = (fixedCells) =>
+  fixedCells.map((row) => row.map((isFixed) => !isFixed));
+
 function App() {
   const [sudokuBoard, setSudokuBoard] = useState(createEmptyBoard);
   const [fixedCells, setFixedCells] = useState(() => createEmptyBoard(false));
+  const [inputHighlightCells, setInputHighlightCells] = useState(() =>
+    createEmptyBoard(false)
+  );
 
   const [isSolved, setIsSolved] = useState(false);
   const [solved, setSolved] = useState(null);
@@ -68,6 +74,7 @@ function App() {
       setSolved(solvedPuzzle);
       setSudokuBoard(sudokuProblem);
       setFixedCells(createFixedCells(sudokuProblem));
+      setInputHighlightCells(createEmptyBoard(false));
       setStatusMessage("New puzzle loaded. Fill the empty cells to solve it.");
     } else {
       const errorMessage = "Could not generate board.";
@@ -124,6 +131,7 @@ function App() {
       !createIncorrectCells(nextBoard, solved).flat().some(Boolean)
     ) {
       setIsSolved(true);
+      setInputHighlightCells(createInputHighlightCells(fixedCells));
       setFixedCells(createEmptyBoard(true));
       setStatusMessage("Great job, the puzzle is complete.");
       toast.success("Puzzle complete!");
@@ -161,6 +169,7 @@ function App() {
     if (solvedPuzzle) {
       setSolved(solvedPuzzle);
       setSudokuBoard(solvedPuzzle);
+      setInputHighlightCells(createInputHighlightCells(fixedCells));
       setFixedCells(createEmptyBoard(true));
       setIsSolved(true);
       setStatusMessage("Solved the current board.");
@@ -175,6 +184,7 @@ function App() {
   const clearBoard = () => {
     setSudokuBoard(createEmptyBoard());
     setFixedCells(createEmptyBoard(false));
+    setInputHighlightCells(createEmptyBoard(false));
     setSolved(null);
     setIsSolved(false);
     setStatusMessage("Board cleared. Enter a puzzle or load a new one.");
@@ -182,73 +192,81 @@ function App() {
 
   return (
     <div className="app-container">
-      <h2>Sudoku Solver</h2>
+      <header className="app-header">
+        <p className="eyebrow">Interactive Sudoku</p>
+        <h1>Sudoku Solver</h1>
+        <p className="subtitle">
+          Load a fresh puzzle, play through it with instant feedback, or enter
+          your own board and solve it.
+        </p>
+      </header>
 
-      <div className="guide">
-        <p>
-          👉 Enter a valid sudoku puzzle, then click the Solve button to see the
-          solution.
-        </p>
-        <p>👉 Click the Clear button to clear the board.</p>
-        <p>
-          👉 Hit Load to load a new random puzzle for you to solve. You can
-          refer to the rules of the game below
-        </p>
-      </div>
-      <p className="status-message" role="status">
-        {statusMessage}
-      </p>
-      <div className="sudoku-container">
-        <SudokuBoard
-          sudokuBoard={sudokuBoard}
-          fixedCells={fixedCells}
-          incorrectCells={incorrectCells}
-          handleInputChange={handleInputChange}
-        />
-        <div className="buttons-container">
-          <button
-            type="button"
-            id="solve-button"
-            className="solve-button"
-            onClick={solveSudoku}
-          >
-            Solve
-          </button>
-          <button
-            type="button"
-            id="clear-button"
-            className="clear-button"
-            onClick={clearBoard}
-          >
-            Clear
-          </button>
-          <button
-            type="button"
-            id="load-button"
-            className="load-button"
-            onClick={loadSudoku}
-          >
-            Load
-          </button>
+      <main className="game-card">
+        <div className="game-panel">
+          <div className="panel-header">
+            <div>
+              <p className="section-label">Board</p>
+              <h2>Make your next move</h2>
+            </div>
+            <span className={isSolved ? "game-state solved" : "game-state"}>
+              {isSolved ? "Solved" : "In progress"}
+            </span>
+          </div>
+
+          <p className="status-message" role="status">
+            {statusMessage}
+          </p>
+
+          <SudokuBoard
+            sudokuBoard={sudokuBoard}
+            fixedCells={fixedCells}
+            incorrectCells={incorrectCells}
+            inputHighlightCells={inputHighlightCells}
+            handleInputChange={handleInputChange}
+          />
+
+          <div className="buttons-container" aria-label="Sudoku actions">
+            <button
+              type="button"
+              id="load-button"
+              className="load-button"
+              onClick={loadSudoku}
+            >
+              New Puzzle
+            </button>
+            <button
+              type="button"
+              id="solve-button"
+              className="solve-button"
+              onClick={solveSudoku}
+            >
+              Solve
+            </button>
+            <button
+              type="button"
+              id="clear-button"
+              className="clear-button"
+              onClick={clearBoard}
+            >
+              Clear
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="rules">
-        <h2>Rules</h2>
-        <p>
-          The goal of Sudoku is to fill in a 9×9 grid with digits so that each
-          column, row, and 3×3 section contain the numbers between 1 to 9. At
-          the beginning of the game, the 9×9 grid will have some of the squares
-          filled in. Your job is to use logic to fill in the missing digits and
-          complete the grid. Don’t forget, a move is incorrect if:
-        </p>
-        <p>👉 Any row contains more than one of the same number from 1 to 9</p>
-        <p>
-          👉 Any column contains more than one of the same number from 1 to 9
-        </p>
-        <p>
-          👉 Any 3×3 grid contains more than one of the same number from 1 to 9
-        </p>
-      </div>
+
+        <aside className="rules-card">
+          <p className="section-label">How to Play</p>
+          <h2>Simple rules, smart feedback</h2>
+          <p>
+            Fill every empty cell with digits from 1 to 9. Each row, column,
+            and 3x3 box can contain each digit only once.
+          </p>
+          <ul>
+            <li>Red cells show a conflict or wrong loaded-puzzle answer.</li>
+            <li>Prefilled puzzle cells are locked so you can focus on gaps.</li>
+            <li>Solve works for loaded puzzles and boards you enter manually.</li>
+          </ul>
+        </aside>
+      </main>
       <ToastContainer />
     </div>
   );
