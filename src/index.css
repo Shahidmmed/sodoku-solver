@@ -125,6 +125,11 @@ button:focus-visible {
   font-weight: 800;
 }
 
+.sudoku-cell:disabled {
+  cursor: not-allowed;
+  opacity: 1;
+}
+
 .buttons-container {
   padding: 5px;
 }
@@ -145,11 +150,11 @@ button {
   background-color: #f31e1e;
 }
 
-input:disabled .square-color-2 {
-  background-color: #7f7c7c !important;
-}
-input:disabled .square-color-1 {
-  background-color: #e0e0e0 !important;
+.status-message {
+  min-height: 1.5em;
+  margin: 0 0 8px;
+  font-weight: 600;
+  text-align: center;
 }
 
 /* Style inputs on iPhone Safari */

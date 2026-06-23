@@ -1,168 +1,183 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import SudokuBoard from "./SudokuBoard";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { solve, flatTo2DArray } from "./solver";
+import { hasBoardConflict, hasCellConflict, solveBoard } from "./solver";
 import { generateSudokuPuzzle } from "./loader";
 
-function App() {
-  const [sudokuBoard, setSudokuBoard] = useState(
-    Array.from({ length: 9 }, () => Array(9).fill(""))
+const createEmptyBoard = (value = "") =>
+  Array.from({ length: 9 }, () => Array(9).fill(value));
+
+const createFixedCells = (board) =>
+  board.map((row) => row.map((cell) => cell !== 0 && cell !== ""));
+
+const updateCell = (board, rowIndex, colIndex, value) =>
+  board.map((row, currentRowIndex) =>
+    currentRowIndex === rowIndex
+      ? row.map((cell, currentColIndex) =>
+          currentColIndex === colIndex ? value : cell
+        )
+      : row
   );
 
-  const [error, setError] = useState(null);
+const isBoardEmpty = (board) =>
+  board.every((row) => row.every((cell) => cell === 0 || cell === ""));
+
+const isBoardComplete = (board) =>
+  board.every((row) => row.every((cell) => cell !== 0 && cell !== ""));
+
+const createIncorrectCells = (board, solvedBoard) =>
+  board.map((row, rowIndex) =>
+    row.map((cell, colIndex) => {
+      if (cell === 0 || cell === "") return false;
+      if (hasCellConflict(board, rowIndex, colIndex)) return true;
+
+      return Boolean(
+        solvedBoard?.length && Number(cell) !== solvedBoard[rowIndex][colIndex]
+      );
+    })
+  );
+
+function App() {
+  const [sudokuBoard, setSudokuBoard] = useState(createEmptyBoard);
+  const [fixedCells, setFixedCells] = useState(() => createEmptyBoard(false));
+
   const [isSolved, setIsSolved] = useState(false);
-  const [solvedSudoku, setSolvedSudoku] = useState([]);
-  const [solved, setSolved] = useState([]); //FIX: 9x9 matrix to match board so its easier to compare solved to current
+  const [solved, setSolved] = useState(null);
+  const [statusMessage, setStatusMessage] = useState(
+    "Load a puzzle or enter your own numbers to get started."
+  );
 
-  function convertInputsToBoard() {
-    const updatedBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
-    const inputs = document.querySelectorAll("input");
-    let inputIndex = 0;
-
-    for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
-      for (let colIndex = 0; colIndex < 9; colIndex++) {
-        const inputValue = inputs[inputIndex].value;
-        if (!isNaN(inputValue) && inputValue !== "") {
-          updatedBoard[rowIndex][colIndex] = parseInt(inputValue);
-        }
-        inputIndex++;
-      }
-    }
-
-    return updatedBoard;
-  }
+  const incorrectCells = createIncorrectCells(sudokuBoard, solved);
 
   function loadSudoku() {
     setIsSolved(false);
 
     const sudokuProblem = generateSudokuPuzzle();
-    const inputs = document.querySelectorAll("input");
-
-    inputs.forEach((input) => {
-      if (input.classList.contains("incorrect-input")) {
-        input.classList.remove("incorrect-input");
-      }
-    });
 
     if (sudokuProblem) {
-      const solvedPuzzle = solve(sudokuProblem.flat());
-      setSolved(solvedPuzzle); //FIX: SET SOLVED BOARD WITHOUT CHANGING SRUCTURE (STILL 9X9)
-      let inputIndex = 0;
+      const solvedPuzzle = solveBoard(sudokuProblem);
 
-      for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
-        for (let colIndex = 0; colIndex < 9; colIndex++) {
-          const value = sudokuProblem[rowIndex][colIndex];
-          const input = inputs[inputIndex];
-
-          if (value !== undefined) {
-            if (value === 0) {
-              input.value = ""; // Set the input field to be empty for zero.
-              input.disabled = false; // Enable the input field for user input.
-            } else {
-              input.value = value.toString();
-              input.disabled = true; // Disable the input field for pre-filled values.
-            }
-          }
-          inputIndex++;
-        }
+      if (!Array.isArray(solvedPuzzle)) {
+        const errorMessage = "Could not solve generated board.";
+        setStatusMessage(errorMessage);
+        toast.error(errorMessage);
+        return;
       }
 
+      setSolved(solvedPuzzle);
       setSudokuBoard(sudokuProblem);
+      setFixedCells(createFixedCells(sudokuProblem));
+      setStatusMessage("New puzzle loaded. Fill the empty cells to solve it.");
     } else {
       const errorMessage = "Could not generate board.";
-      setError(errorMessage);
+      setStatusMessage(errorMessage);
       toast.error(errorMessage);
     }
   }
 
   const handleInputChange = (e, rowIndex, colIndex) => {
-    const newValue = e.target.value;
-    // Check if the entered value is a number
-    if (!isNaN(newValue) && /^\d{0,1}$/.test(newValue)) {
-      const newBoard = [...sudokuBoard];
-      newBoard[rowIndex][colIndex] = parseInt(newValue) || ""; //FIX: CHANGE VALUE TO INT, INPUT VLUES RE STRING BY DEFAULT
-      setSudokuBoard(newBoard);
-      setError(null);
+    if (fixedCells[rowIndex][colIndex] || isSolved) return;
 
-      if (solved.length) {
-        const solvedRow = solved[rowIndex]; //FIX: USE 9X9 SOLVED  BOARD INSTEAD OF FLATTENED
+    const newValue = e.target.value.trim();
 
-        if (solvedRow && solvedRow.length > colIndex) {
-          const solvedValue = solvedRow[colIndex];
-
-          //FIX:NOW VALUES ARE BOTH INT SO NO ISSUES
-          if (newValue !== "" && parseInt(newValue) !== solvedValue) {
-            e.target.classList.add("incorrect-input");
-
-            const errorMessage =
-              "Incorrect input. Please review your solution.";
-            setError(errorMessage);
-            toast.error(errorMessage);
-          } else {
-            if (
-              e.target instanceof HTMLInputElement &&
-              e.target.classList &&
-              e.target.classList.contains("incorrect-input")
-            ) {
-              e.target.classList.remove("incorrect-input");
-            }
-          }
-        }
-      }
-    } else {
-      const errorMessage = "Please enter a valid single digit (1-9).";
-      setError(errorMessage);
-      toast.error(errorMessage);
+    if (newValue === "") {
+      setSudokuBoard((currentBoard) =>
+        updateCell(currentBoard, rowIndex, colIndex, "")
+      );
+      setStatusMessage("Cell cleared.");
+      return;
     }
+
+    if (!/^[1-9]$/.test(newValue)) {
+      setStatusMessage("Use digits 1 through 9 only.");
+      return;
+    }
+
+    const parsedValue = Number(newValue);
+    const nextBoard = updateCell(
+      sudokuBoard,
+      rowIndex,
+      colIndex,
+      parsedValue
+    );
+
+    setSudokuBoard(nextBoard);
+    setIsSolved(false);
+
+    if (hasCellConflict(nextBoard, rowIndex, colIndex)) {
+      setStatusMessage(
+        "That digit conflicts with the current row, column, or box."
+      );
+      return;
+    }
+
+    if (solved?.length && parsedValue !== solved[rowIndex][colIndex]) {
+      setStatusMessage(
+        "That digit does not match the loaded puzzle's solution."
+      );
+      return;
+    }
+
+    if (
+      isBoardComplete(nextBoard) &&
+      !createIncorrectCells(nextBoard, solved).flat().some(Boolean)
+    ) {
+      setIsSolved(true);
+      setFixedCells(createEmptyBoard(true));
+      setStatusMessage("Great job, the puzzle is complete.");
+      toast.success("Puzzle complete!");
+      return;
+    }
+
+    setStatusMessage("Good move.");
   };
 
   const solveSudoku = () => {
     if (isSolved) {
       const errorMessage =
         "The board is already solved, no need to solve it again.";
-      setError(errorMessage);
+      setStatusMessage(errorMessage);
       toast.error(errorMessage);
       return;
     }
 
-    const flatBoard = convertInputsToBoard().flat();
-    const inputs = document.querySelectorAll("input");
-    // const solved = solve(flatBoard);
-    if (solved) {
-      setSudokuBoard(solved);
-      let inputIndex = 0;
-      for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
-        for (let colIndex = 0; colIndex < 9; colIndex++) {
-          const value = solved[rowIndex][colIndex]; //FIX: USE 9X9 MATRIX TO FILL SOLVED VALUES
-          if (value !== undefined) {
-            inputs[inputIndex].value = value === 0 ? "" : value.toString();
-          }
-          inputIndex++;
-        }
-      }
+    if (isBoardEmpty(sudokuBoard)) {
+      const errorMessage = "Enter a puzzle or load one before solving.";
+      setStatusMessage(errorMessage);
+      toast.error(errorMessage);
+      return;
+    }
+
+    if (hasBoardConflict(sudokuBoard)) {
+      const errorMessage = "Fix the highlighted conflicts before solving.";
+      setStatusMessage(errorMessage);
+      toast.error(errorMessage);
+      return;
+    }
+
+    const solvedPuzzle = solveBoard(sudokuBoard);
+
+    if (solvedPuzzle) {
+      setSolved(solvedPuzzle);
+      setSudokuBoard(solvedPuzzle);
+      setFixedCells(createEmptyBoard(true));
       setIsSolved(true);
+      setStatusMessage("Solved the current board.");
+      toast.success("Solved!");
     } else {
       const errorMessage = "No solution found.";
-      setError(errorMessage);
+      setStatusMessage(errorMessage);
       toast.error(errorMessage);
     }
   };
 
   const clearBoard = () => {
-    const clearedBoard = Array.from({ length: 9 }, () => Array(9).fill(""));
-    setSudokuBoard(clearedBoard);
+    setSudokuBoard(createEmptyBoard());
+    setFixedCells(createEmptyBoard(false));
+    setSolved(null);
     setIsSolved(false);
-    setError(null);
-
-    const inputs = document.querySelectorAll("input");
-    inputs.forEach((input) => {
-      input.disabled = false;
-      // Remove the "incorrect-input" class from all inputs
-      if (input.classList.contains("incorrect-input")) {
-        input.classList.remove("incorrect-input");
-      }
-    });
+    setStatusMessage("Board cleared. Enter a puzzle or load a new one.");
   };
 
   return (
@@ -180,9 +195,14 @@ function App() {
           refer to the rules of the game below
         </p>
       </div>
+      <p className="status-message" role="status">
+        {statusMessage}
+      </p>
       <div className="sudoku-container">
         <SudokuBoard
           sudokuBoard={sudokuBoard}
+          fixedCells={fixedCells}
+          incorrectCells={incorrectCells}
           handleInputChange={handleInputChange}
         />
         <div className="buttons-container">

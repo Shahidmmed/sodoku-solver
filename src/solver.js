@@ -1,79 +1,145 @@
-//takes an index (from 0 to 80) and converts it into row and column coordinates in a 9x9 Sudoku grid
-const indexToRowCol = (index) => {
-  return { row: Math.floor(index / 9), col: index % 9 };
-};
+const BOARD_SIZE = 9;
+const BOX_SIZE = 3;
+const BOARD_CELLS = BOARD_SIZE * BOARD_SIZE;
 
-//does the reverse, taking row and column coordinates and converting them into a single index
-const rowColToIndex = (row, col) => row * 9 + col;
+const indexToRowCol = (index) => ({
+  row: Math.floor(index / BOARD_SIZE),
+  col: index % BOARD_SIZE,
+});
 
-//checks if it's valid to place a specific value at a given index on the Sudoku board
-//if the value is not present in the same row, column, or 3x3 subgrid
-const  acceptable = (board, index, value) => {
-  let { row, col } = indexToRowCol(index);
-  for (let r = 0; r < 9; ++r) {
-    if (board[rowColToIndex(r, col)] == value) return false;
-  }
-  for (let c = 0; c < 9; ++c) {
-    if (board[rowColToIndex(row, c)] == value) return false;
-  }
+const rowColToIndex = (row, col) => row * BOARD_SIZE + col;
 
-  let r1 = Math.floor(row / 3) * 3;
-  let c1 = Math.floor(col / 3) * 3;
-  for (let r = r1; r < r1 + 3; ++r) {
-    for (let c = c1; c < c1 + 3; ++c) {
-      if (board[rowColToIndex(r, c)] == value) return false;
-    }
-  }
-  return true;
-};
-
-// returns an array of valid numbers that can be placed at a given index on the Sudoku board
-const getChoices = (board, index) => {
-  let choices = [];
-
-  for (let value = 1; value <= 9; ++value) {
-    if (acceptable(board, index, value)) {
-      choices.push(value);
-    }
-  }
-  return choices;
-};
-
-const bestBet = (board) => {
-  let index,
-    moves,
-    bestLen = 100;
-
-  for (let i = 0; i < 81; ++i) {
-    if (board[i] === 0) {
-      let m = getChoices(board, i);
-      if (m.length < bestLen) {
-        bestLen = m.length;
-        moves = m;
-        index = i;
-        if (bestLen === 0) break;
-      }
-    }
-  }
-  return { index, moves };
+const normalizeCell = (cell) => {
+  const value = Number(cell);
+  return Number.isInteger(value) && value >= 1 && value <= 9 ? value : 0;
 };
 
 export function flatTo2DArray(flatArray) {
-  const size = Math.sqrt(flatArray.length);
   const result = [];
-  for (let i = 0; i < size; i++) {
-    result.push(flatArray.slice(i * size, (i + 1) * size));
+
+  for (let i = 0; i < BOARD_SIZE; i++) {
+    result.push(flatArray.slice(i * BOARD_SIZE, (i + 1) * BOARD_SIZE));
   }
+
   return result;
 }
 
-export const solve = (board) => {
-  let { index, moves } = bestBet(board);
-  if (index == null) return true;
-  for (let m of moves) {
-    board[index] = m;
-    if (solve(board)) return flatTo2DArray(board);
+export function boardToFlat(board) {
+  const cells = Array.isArray(board[0]) ? board.flat() : board;
+  return cells.map(normalizeCell);
+}
+
+const canPlaceValue = (board, index, value) => {
+  const { row, col } = indexToRowCol(index);
+
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    if (board[rowColToIndex(r, col)] === value) return false;
   }
-  board[index] = 0;
-  return 0;
+
+  for (let c = 0; c < BOARD_SIZE; c++) {
+    if (board[rowColToIndex(row, c)] === value) return false;
+  }
+
+  const boxRow = Math.floor(row / BOX_SIZE) * BOX_SIZE;
+  const boxCol = Math.floor(col / BOX_SIZE) * BOX_SIZE;
+
+  for (let r = boxRow; r < boxRow + BOX_SIZE; r++) {
+    for (let c = boxCol; c < boxCol + BOX_SIZE; c++) {
+      if (board[rowColToIndex(r, c)] === value) return false;
+    }
+  }
+
+  return true;
 };
+
+const getChoices = (board, index) => {
+  const choices = [];
+
+  for (let value = 1; value <= BOARD_SIZE; value++) {
+    if (canPlaceValue(board, index, value)) {
+      choices.push(value);
+    }
+  }
+
+  return choices;
+};
+
+const findBestEmptyCell = (board) => {
+  let bestIndex = null;
+  let bestChoices = [];
+
+  for (let index = 0; index < BOARD_CELLS; index++) {
+    if (board[index] === 0) {
+      const choices = getChoices(board, index);
+
+      if (bestIndex === null || choices.length < bestChoices.length) {
+        bestIndex = index;
+        bestChoices = choices;
+      }
+
+      if (bestChoices.length === 0) break;
+    }
+  }
+
+  return { index: bestIndex, choices: bestChoices };
+};
+
+export function hasBoardConflict(board) {
+  const flatBoard = boardToFlat(board);
+
+  for (let index = 0; index < BOARD_CELLS; index++) {
+    const value = flatBoard[index];
+
+    if (value !== 0) {
+      flatBoard[index] = 0;
+
+      if (!canPlaceValue(flatBoard, index, value)) {
+        return true;
+      }
+
+      flatBoard[index] = value;
+    }
+  }
+
+  return false;
+}
+
+export function hasCellConflict(board, row, col) {
+  const flatBoard = boardToFlat(board);
+  const index = rowColToIndex(row, col);
+  const value = flatBoard[index];
+
+  if (value === 0) return false;
+
+  flatBoard[index] = 0;
+  return !canPlaceValue(flatBoard, index, value);
+}
+
+const solveFlatBoard = (board) => {
+  const { index, choices } = findBestEmptyCell(board);
+
+  if (index === null) return true;
+
+  for (const choice of choices) {
+    board[index] = choice;
+
+    if (solveFlatBoard(board)) {
+      return true;
+    }
+  }
+
+  board[index] = 0;
+  return false;
+};
+
+export function solveBoard(board) {
+  const flatBoard = boardToFlat(board);
+
+  if (flatBoard.length !== BOARD_CELLS || hasBoardConflict(flatBoard)) {
+    return null;
+  }
+
+  return solveFlatBoard(flatBoard) ? flatTo2DArray(flatBoard) : null;
+}
+
+export const solve = (board) => solveBoard(board) ?? 0;

@@ -1,4 +1,4 @@
-import { solve, flatTo2DArray } from "./solver";
+import { hasBoardConflict, solveBoard } from "./solver";
 
 // Function to generate a Sudoku puzzle and ensure it's solvable.
 export function generateSudokuPuzzle() {
@@ -38,9 +38,11 @@ export function generateSudokuPuzzle() {
 
 // Fill the Sudoku grid with a solved puzzle using your provided solver.
 function fillSudoku(grid) {
-  const flatGrid = grid.flat();
-  solve(flatGrid);
-  grid.splice(0, grid.length, ...flatTo2DArray(flatGrid));
+  const solution = solveBoard(grid);
+
+  if (solution) {
+    grid.splice(0, grid.length, ...solution);
+  }
 }
 
 // Define a function to insert a random number into the grid following Sudoku rules.
@@ -77,26 +79,9 @@ function insertRandomNumber(grid) {
 
 // Define a function to check if a number can be placed in a cell following Sudoku rules.
 function isValidMove(grid, row, col, value) {
-  // Check the row and column.
-  for (let i = 0; i < 9; i++) {
-    if (grid[row][i] === value || grid[i][col] === value) {
-      return false;
-    }
-  }
-
-  // Check the 3x3 subgrid.
-  const subgridRow = Math.floor(row / 3) * 3;
-  const subgridCol = Math.floor(col / 3) * 3;
-
-  for (let i = subgridRow; i < subgridRow + 3; i++) {
-    for (let j = subgridCol; j < subgridCol + 3; j++) {
-      if (grid[i][j] === value) {
-        return false;
-      }
-    }
-  }
-
-  return true;
+  const nextGrid = grid.map((currentRow) => [...currentRow]);
+  nextGrid[row][col] = value;
+  return !hasBoardConflict(nextGrid);
 }
 
 // Remove numbers from the Sudoku grid while ensuring uniqueness.
@@ -141,15 +126,6 @@ function removeNumbers(grid, toRemove) {
 
 // Check if a Sudoku puzzle has a unique solution using your provided solver.
 function hasUniqueSolution(grid) {
-  const flatGrid = grid.flat();
-  const solution = solve(flatGrid);
-  return solution !== 0;
+  return solveBoard(grid) !== null;
 }
 
-// Shuffle an array randomly using the Fisher-Yates shuffle algorithm.
-function shuffleArray(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
