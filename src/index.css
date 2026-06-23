@@ -204,7 +204,7 @@ body {
 }
 
 button {
-  border: 1px solid transparent;
+  border: 1px solid #646cff;
   border-radius: 999px;
   padding: 0.8em 1.35em;
   color: #fff;
@@ -347,11 +347,15 @@ button:focus-visible {
   }
 
   .buttons-container {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
   }
 
   button {
-    width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.75em 0.55em;
+    font-size: 0.85rem;
   }
 }
