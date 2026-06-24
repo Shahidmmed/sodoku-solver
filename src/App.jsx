@@ -32,6 +32,18 @@ const ACCENT_COLORS = [
   { color: "#0ea5e9", hover: "#0369a1", focus: "rgba(14, 165, 233, 0.32)" },
   { color: "#eab308", hover: "#a16207", focus: "rgba(234, 179, 8, 0.32)" },
   { color: "#ec4899", hover: "#be185d", focus: "rgba(236, 72, 153, 0.32)" },
+  { color: "#ef4444", hover: "#b91c1c", focus: "rgba(239, 68, 68, 0.32)" },
+  { color: "#84cc16", hover: "#4d7c0f", focus: "rgba(132, 204, 22, 0.32)" },
+  { color: "#06b6d4", hover: "#0e7490", focus: "rgba(6, 182, 212, 0.32)" },
+  { color: "#3b82f6", hover: "#1d4ed8", focus: "rgba(59, 130, 246, 0.32)" },
+  { color: "#8b5cf6", hover: "#6d28d9", focus: "rgba(139, 92, 246, 0.32)" },
+  { color: "#d946ef", hover: "#a21caf", focus: "rgba(217, 70, 239, 0.32)" },
+  { color: "#f43f5e", hover: "#be123c", focus: "rgba(244, 63, 94, 0.32)" },
+  { color: "#f59e0b", hover: "#b45309", focus: "rgba(245, 158, 11, 0.32)" },
+  { color: "#10b981", hover: "#047857", focus: "rgba(16, 185, 129, 0.32)" },
+  { color: "#38bdf8", hover: "#0284c7", focus: "rgba(56, 189, 248, 0.32)" },
+  { color: "#a3e635", hover: "#65a30d", focus: "rgba(163, 230, 53, 0.32)" },
+  { color: "#fb7185", hover: "#e11d48", focus: "rgba(251, 113, 133, 0.32)" },
 ];
 
 const getRandomAccent = (currentAccent) => {
