@@ -25,6 +25,25 @@ const FEEDBACK_MODES = {
   },
 };
 
+const ACCENT_COLORS = [
+  { color: "#14b8a6", hover: "#0f766e", focus: "rgba(20, 184, 166, 0.32)" },
+  { color: "#f97316", hover: "#c2410c", focus: "rgba(249, 115, 22, 0.32)" },
+  { color: "#22c55e", hover: "#15803d", focus: "rgba(34, 197, 94, 0.32)" },
+  { color: "#0ea5e9", hover: "#0369a1", focus: "rgba(14, 165, 233, 0.32)" },
+  { color: "#eab308", hover: "#a16207", focus: "rgba(234, 179, 8, 0.32)" },
+  { color: "#ec4899", hover: "#be185d", focus: "rgba(236, 72, 153, 0.32)" },
+];
+
+const getRandomAccent = (currentAccent) => {
+  const availableAccents = ACCENT_COLORS.filter(
+    (accent) => accent.color !== currentAccent?.color
+  );
+  const accents = availableAccents.length ? availableAccents : ACCENT_COLORS;
+  const randomIndex = Math.floor(Math.random() * accents.length);
+
+  return accents[randomIndex];
+};
+
 const createFixedCells = (board) =>
   board.map((row) => row.map((cell) => cell !== 0 && cell !== ""));
 
@@ -81,6 +100,7 @@ function App() {
   );
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [accentColor, setAccentColor] = useState(() => getRandomAccent());
   const [statusMessage, setStatusMessage] = useState(
     "Load a puzzle or enter your own numbers to get started."
   );
@@ -101,6 +121,7 @@ function App() {
 
   function loadSudoku() {
     setIsSolved(false);
+    setAccentColor((currentAccent) => getRandomAccent(currentAccent));
 
     const sudokuProblem = generateSudokuPuzzle(
       DIFFICULTIES[difficulty].cellsToRemove
@@ -280,7 +301,14 @@ function App() {
   };
 
   return (
-    <div className="app-container">
+    <div
+      className="app-container"
+      style={{
+        "--accent-color": accentColor.color,
+        "--accent-hover": accentColor.hover,
+        "--accent-focus": accentColor.focus,
+      }}
+    >
       <header className="app-header">
         <p className="eyebrow">Interactive Sudoku</p>
         <h1>Sudoku Solver</h1>
